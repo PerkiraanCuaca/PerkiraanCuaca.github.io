@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Perkiraan Cuaca</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: #0f172a;
+  color: #e2e8f0;
+  min-height: 100vh;
+  padding: 2rem 1rem;
+}
+
+.container {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+/* Header */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+.logo {
+  font-family: 'DM Mono';
+  font-size: 1rem;
+  color: #38bdf8;
+  letter-spacing: 2px;
+}
+
+.search {
+  display: flex;
+  gap: 8px;
+}
+.search input {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  color: #e2e8f0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  outline: none;
+  width: 200px;
+  transition: border-color 0.2s;
+}
+.search input:focus { border-color: #38bdf8; }
+.search input::placeholder { color: #475569; }
+.search button {
+  background: #38bdf8;
+  color: #0f172a;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.search button:hover { opacity: 0.85; }
+
+/* Main */
+.main-card {
+  background: #1e293b;
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+.main-left {}
+.location { font-size: 0.8rem; color: #64748b; margin-bottom: 4px; }
+.city-name { font-size: 1.5rem; font-weight: 500; margin-bottom: 2px; }
+.date-str { font-family: 'DM Mono'; font-size: 0.75rem; color: #475569; margin-bottom: 1.5rem; }
+
+.temp-row { display: flex; align-items: flex-end; gap: 1rem; margin-bottom: 6px; }
+.big-temp { font-size: 4rem; font-weight: 300; line-height: 1; letter-spacing: -2px; }
+.big-icon { font-size: 2.5rem; line-height: 1; margin-bottom: 4px; }
+.cond-text { font-size: 1rem; color: #94a3b8; }
+.feels-text { font-size: 0.8rem; color: #475569; margin-top: 2px; }
+
+.stats-row {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #334155;
+}
+.stat { }
+.stat-label { font-size: 0.7rem; color: #475569; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 3px; }
+.stat-value { font-family: 'DM Mono'; font-size: 0.95rem; color: #e2e8f0; }
+
+/* Hourly */
+.section-label {
+  font-size: 0.7rem;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.hourly-scroll {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.hourly-scroll::-webkit-scrollbar { height: 2px; }
+.hourly-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+
+.hour-pill {
+  background: #1e293b;
+  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+  text-align: center;
+  min-width: 62px;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.hour-pill:hover { background: #263348; }
+.hour-pill.now { background: #1d3a52; border: 1px solid #38bdf8; }
+.hp-time { font-family: 'DM Mono'; font-size: 0.65rem; color: #475569; margin-bottom: 5px; }
+.hp-icon { font-size: 1.2rem; margin-bottom: 5px; }
+.hp-temp { font-size: 0.85rem; font-weight: 500; }
+.hp-rain { font-size: 0.65rem; color: #38bdf8; margin-top: 2px; }
+
+/* Weekly */
+.weekly {
+  background: #1e293b;
+  border-radius: 16px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+.day-row {
+  display: flex;
+  align-items: center;
+  padding: 0.9rem 1.5rem;
+  gap: 1rem;
+  border-bottom: 1px solid #0f172a;
+  transition: background 0.15s;
+}
+.day-row:last-child { border-bottom: none; }
+.day-row:hover { background: #263348; }
+.day-row.today { background: #1d3a52; }
+.d-name { font-size: 0.85rem; width: 76px; color: #94a3b8; }
+.d-name.t { color: #38bdf8; font-weight: 500; }
+.d-icon { font-size: 1.3rem; }
+.d-desc { flex: 1; font-size: 0.8rem; color: #475569; }
+.d-rain { font-family: 'DM Mono'; font-size: 0.75rem; color: #38bdf8; width: 40px; text-align: right; }
+.d-temps { font-family: 'DM Mono'; font-size: 0.85rem; text-align: right; min-width: 70px; }
+.d-hi { color: #fbbf24; }
+.d-lo { color: #475569; }
+
+/* Extra cards */
+.extra-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.extra {
+  background: #1e293b;
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+.extra-label { font-size: 0.7rem; color: #475569; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem; }
+
+.uv-num { font-family: 'DM Mono'; font-size: 2rem; font-weight: 400; color: #fbbf24; }
+.uv-desc { font-size: 0.8rem; color: #64748b; margin-top: 2px; margin-bottom: 1rem; }
+.uv-bar { height: 5px; background: #0f172a; border-radius: 3px; overflow: hidden; }
+.uv-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #fbbf24, #f87171); border-radius: 3px; }
+
+.aqi-num { font-family: 'DM Mono'; font-size: 2rem; color: #34d399; }
+.aqi-status { font-size: 0.9rem; color: #34d399; font-weight: 500; margin-top: 2px; }
+.aqi-desc { font-size: 0.8rem; color: #64748b; margin-top: 6px; line-height: 1.5; }
+
+footer { text-align: center; margin-top: 2rem; font-size: 0.72rem; color: #334155; font-family: 'DM Mono'; }
+
+@media (max-width: 600px) {
+  header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .search input { width: 160px; }
+  .stats-row { flex-wrap: wrap; gap: 1rem; }
+  .extra-row { grid-template-columns: 1fr; }
+  .d-desc { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo">PERKIRAAN CUACA</div>
+    <div class="search">
+      <input id="inp" type="text" placeholder="Cari kota..." value="Jakarta" />
+      <button onclick="doSearch()">Cari</button>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <div class="main-card">
+    <div class="main-left">
+      <div class="location" id="region">Jakarta, DKI Jakarta, Indonesia</div>
+      <div class="city-name" id="cityName">Jakarta</div>
+      <div class="date-str" id="dateStr"></div>
+      <div class="temp-row">
+        <div class="big-temp" id="bigTemp">28°C</div>
+        <div class="big-icon" id="bigIcon">⛅</div>
+      </div>
+      <div class="cond-text" id="condText">Sebagian Berawan</div>
+      <div class="feels-text" id="feelsText">Terasa seperti 32°C</div>
+      <div class="stats-row">
+        <div class="stat"><div class="stat-label">Kelembaban</div><div class="stat-value" id="st1">82%</div></div>
+        <div class="stat"><div class="stat-label">Angin</div><div class="stat-value" id="st2">14 km/j</div></div>
+        <div class="stat"><div class="stat-label">Pandang</div><div class="stat-value" id="st3">10 km</div></div>
+        <div class="stat"><div class="stat-label">Tekanan</div><div class="stat-value" id="st4">1009 hPa</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hourly -->
+  <div class="section-label">Prakiraan Per Jam</div>
+  <div class="hourly-scroll" id="hourly"></div>
+
+  <!-- Weekly -->
+  <div class="section-label" style="margin-top:1.5rem">Prakiraan 7 Hari</div>
+  <div class="weekly" id="weekly"></div>
+
+  <!-- Extra -->
+  <div class="extra-row">
+    <div class="extra">
+      <div class="extra-label">Indeks UV</div>
+      <div class="uv-num" id="uvNum">3</div>
+      <div class="uv-desc">Sedang — Gunakan tabir surya</div>
+      <div class="uv-bar"><div class="uv-fill" id="uvFill" style="width:27%"></div></div>
+    </div>
+    <div class="extra">
+      <div class="extra-label">Kualitas Udara</div>
+      <div class="aqi-num">68</div>
+      <div class="aqi-status">Sedang</div>
+      <div class="aqi-desc">Orang sensitif mungkin terpengaruh. Aktivitas luar biasa masih aman.</div>
+    </div>
+  </div>
+
+  <footer>Diperbarui otomatis · Perkiraan Cuaca</footer>
+</div>
+
+<script>
+const CITIES = {
+  jakarta:    { name:"Jakarta",    region:"Jakarta, DKI Jakarta, Indonesia",       temp:28, feels:32, cond:"Sebagian Berawan", icon:"⛅", h:82, w:14, v:10, p:1009, uv:3, aqi:68 },
+  bandung:    { name:"Bandung",    region:"Bandung, Jawa Barat, Indonesia",         temp:22, feels:24, cond:"Berawan",          icon:"🌥️", h:74, w:10, v:12, p:1015, uv:2, aqi:42 },
+  surabaya:   { name:"Surabaya",   region:"Surabaya, Jawa Timur, Indonesia",        temp:30, feels:35, cond:"Cerah Berawan",    icon:"🌤️", h:78, w:18, v:9,  p:1007, uv:5, aqi:75 },
+  bali:       { name:"Denpasar",   region:"Denpasar, Bali, Indonesia",              temp:29, feels:33, cond:"Cerah",            icon:"☀️", h:70, w:12, v:15, p:1012, uv:7, aqi:35 },
+  yogyakarta: { name:"Yogyakarta", region:"Yogyakarta, DIY Yogyakarta, Indonesia",  temp:26, feels:29, cond:"Hujan Ringan",     icon:"🌦️", h:88, w:8,  v:7,  p:1011, uv:1, aqi:55 },
+  medan:      { name:"Medan",      region:"Medan, Sumatera Utara, Indonesia",       temp:27, feels:31, cond:"Hujan",            icon:"🌧️", h:90, w:9,  v:5,  p:1006, uv:2, aqi:80 },
+};
+
+const HOURLY_ICONS = ["🌙","🌙","⭐","🌅","⛅","🌤️","☀️","☀️","🌤️","⛅","🌦️","🌧️","🌦️","⛅","🌤️","☀️","🌅","🌙","🌙","⭐","🌙","🌙","🌙","🌙"];
+const HOURLY_RAIN  = ["0%","0%","0%","5%","10%","8%","0%","0%","5%","20%","40%","65%","30%","15%","5%","0%","0%","0%","0%","0%","0%","0%","0%","0%"];
+
+const WEEK = [
+  {d:"Hari ini", icon:"⛅", desc:"Sebagian berawan sore hari", hi:29, lo:24, rain:"20%"},
+  {d:"Besok",    icon:"🌦️", desc:"Hujan ringan pagi",          hi:27, lo:23, rain:"55%"},
+  {d:"Rabu",     icon:"🌧️", desc:"Hujan lebat siang",          hi:25, lo:22, rain:"80%"},
+  {d:"Kamis",    icon:"⛅", desc:"Berawan, membaik",           hi:28, lo:23, rain:"15%"},
+  {d:"Jumat",    icon:"🌤️", desc:"Cerah berawan",              hi:30, lo:24, rain:"5%"},
+  {d:"Sabtu",    icon:"☀️", desc:"Cerah sepanjang hari",       hi:31, lo:25, rain:"0%"},
+  {d:"Minggu",   icon:"🌤️", desc:"Cerah berawan sore",         hi:30, lo:25, rain:"10%"},
+];
+
+function load(key) {
+  const c = CITIES[key] || CITIES.jakarta;
+  document.getElementById('region').textContent = c.region;
+  document.getElementById('cityName').textContent = c.name;
+  document.getElementById('dateStr').textContent = new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('bigTemp').textContent = c.temp + '°C';
+  document.getElementById('bigIcon').textContent = c.icon;
+  document.getElementById('condText').textContent = c.cond;
+  document.getElementById('feelsText').textContent = 'Terasa seperti ' + c.feels + '°C';
+  document.getElementById('st1').textContent = c.h + '%';
+  document.getElementById('st2').textContent = c.w + ' km/j';
+  document.getElementById('st3').textContent = c.v + ' km';
+  document.getElementById('st4').textContent = c.p + ' hPa';
+  document.getElementById('uvNum').textContent = c.uv;
+  document.getElementById('uvFill').style.width = Math.round(c.uv/11*100) + '%';
+
+  // hourly
+  const now = new Date().getHours();
+  let h = '';
+  for (let i = 0; i < 24; i++) {
+    const hr = (now + i) % 24;
+    const lbl = i === 0 ? 'Skrng' : (hr < 10 ? '0'+hr : hr)+':00';
+    const t = c.temp + Math.round(Math.sin(((hr-14)/24)*Math.PI*2)*4);
+    h += `<div class="hour-pill${i===0?' now':''}">
+      <div class="hp-time">${lbl}</div>
+      <div class="hp-icon">${HOURLY_ICONS[hr]}</div>
+      <div class="hp-temp">${t}°</div>
+      <div class="hp-rain">${HOURLY_RAIN[hr]}</div>
+    </div>`;
+  }
+  document.getElementById('hourly').innerHTML = h;
+
+  // weekly
+  document.getElementById('weekly').innerHTML = WEEK.map((d,i) =>
+    `<div class="day-row${i===0?' today':''}">
+      <div class="d-name${i===0?' t':''}">${d.d}</div>
+      <div class="d-icon">${d.icon}</div>
+      <div class="d-desc">${d.desc}</div>
+      <div class="d-rain">${d.rain}</div>
+      <div class="d-temps"><span class="d-hi">${d.hi}°</span> / <span class="d-lo">${d.lo}°</span></div>
+    </div>`
+  ).join('');
+}
+
+function doSearch() {
+  const v = document.getElementById('inp').value.toLowerCase();
+  const key = Object.keys(CITIES).find(k => v.includes(k)) || 'jakarta';
+  document.getElementById('inp').value = CITIES[key].name;
+  load(key);
+}
+
+load('jakarta');
+</script>
+</body>
+</html>
